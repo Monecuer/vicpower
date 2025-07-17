@@ -1,17 +1,64 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>Ticket Generated</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
-<body>
-  <div class="container">
-    <h1>✅ Ticket Created</h1>
-    <p><strong>Name:</strong> {{ name }}</p>
-    <p><strong>Event:</strong> {{ event }}</p>
-    <p><strong>Ticket ID:</strong> {{ ticket_id }}</p>
-    <img class="qr-image" src="{{ url_for('static', filename=qr_path) }}" alt="QR Code">
-    <a href="/">← Back to Home</a>
-  </div>
-</body>
-</html>
+from flask import Flask, render_template, request
+import qrcode
+import os
+import sqlite3
+import uuid
+from itsdangerous import Signer
+
+app = Flask(__name__)
+signer = Signer("your-secret-key")
+
+# Ensure the database exists
+if not os.path.exists("tickets.db"):
+    conn = sqlite3.connect("tickets.db")
+    conn.execute('CREATE TABLE IF NOT EXISTS tickets (event TEXT, code TEXT, status TEXT)')
+    conn.commit()
+    conn.close()
+
+# Ensure QR folder exists
+os.makedirs("static/qr", exist_ok=True)
+
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+@app.route('/generate', methods=['POST'])
+def generate_qr():
+    event = request.form['event']
+    code = str(uuid.uuid4())
+    token = signer.sign(code).decode()
+
+    # Save to database
+    conn = sqlite3.connect('tickets.db')
+    conn.execute('INSERT INTO tickets (event, code, status) VALUES (?, ?, ?)', (event, token, 'pending'))
+    conn.commit()
+    conn.close()
+
+    # Save QR code image
+    img = qrcode.make(token)
+    filename = f"{token}.png"
+    filepath = os.path.join("static", "qr", filename)
+    img.save(filepath)
+
+    return render_template('generate_success.html', token=token, qr_path=filepath)
+
+if __name__ == "__main__":
+    app.run(debug=True)
+@app.route('/ticket/<token>')
+def ticket(token):
+    try:
+        code = signer.unsign(token).decode()
+    except Exception as e:
+        return "Invalid ticket", 400
+
+    conn = sqlite3.connect('tickets.db')
+    cursor = conn.cursor()
+    cursor.execute('SELECT event, status FROM tickets WHERE code = ?', (token,))
+    ticket = cursor.fetchone()
+    conn.close()
+
+    if not ticket:
+        return "Ticket not found", 404
+
+    event, status = ticket
+    return render_template('ticket.html', event=event, status=status, token=token)
