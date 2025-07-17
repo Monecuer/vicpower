@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Ticket Generated</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="container">
+    <h1>✅ Ticket Created</h1>
+    <p><strong>Name:</strong> {{ name }}</p>
+    <p><strong>Event:</strong> {{ event }}</p>
+    <p><strong>Ticket ID:</strong> {{ ticket_id }}</p>
+    <img class="qr-image" src="{{ url_for('static', filename=qr_path) }}" alt="QR Code">
+    <a href="/">← Back to Home</a>
+  </div>
+</body>
+</html>

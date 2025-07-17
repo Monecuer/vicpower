@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Your Ticket</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6f9;
+      padding: 30px;
+      text-align: center;
+    }
+    .ticket-container {
+      background: white;
+      display: inline-block;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    img {
+      max-width: 250px;
+      margin-bottom: 20px;
+    }
+    h2 {
+      margin: 0 0 10px 0;
+      color: #007BFF;
+    }
+    p {
+      margin: 5px 0;
+      font-size: 1.1rem;
+      color: #333;
+    }
+    a {
+      display: inline-block;
+      margin-top: 20px;
+      color: #007BFF;
+      text-decoration: none;
+      font-weight: bold;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="ticket-container">
+    <h2>Event: {{ event }}</h2>
+    <p>Ticket ID: {{ ticket_id }}</p>
+    <img src="{{ url_for('static', filename='qr/' + ticket_id + '.png') }}" alt="QR Code" />
+    <p><a href="/">Generate Another Ticket</a></p>
+  </div>
+</body>
+</html>

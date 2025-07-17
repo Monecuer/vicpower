@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Victory Power Event Ticket Generator & Scanner</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #e7f0fd;
+      padding: 30px;
+      text-align: center;
+    }
+    .form-container, .scanner-container {
+      max-width: 400px;
+      margin: 20px auto;
+      background: white;
+      padding: 25px;
+      border-radius: 10px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.1);
+    }
+    label {
+      display: block;
+      margin-top: 15px;
+      text-align: left;
+      color: #333;
+    }
+    input[type="text"] {
+      width: 100%;
+      padding: 10px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+    button {
+      margin-top: 20px;
+      background-color: #007BFF;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    #qr-reader {
+      width: 100%;
+      margin-top: 15px;
+    }
+    #result {
+      margin-top: 20px;
+      font-weight: bold;
+      color: #333;
+    }
+  </style>
+</head>
+<body>
+  <div class="form-container">
+    <h2>Generate Event Ticket</h2>
+    <form action="/generate" method="POST">
+      <label for="event">Event Title:</label>
+      <input type="text" id="event" name="event" required />
+      <button type="submit">Generate Ticket</button>
+    </form>
+  </div>
+
+  <div class="scanner-container">
+    <h2>Scan & Verify Ticket</h2>
+    <button id="start-scan">Start Camera Scan</button>
+    <div id="qr-reader" style="display:none;"></div>
+    <div id="result"></div>
+  </div>
+
+  <!-- Include html5-qrcode library -->
+  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+  <script>
+    const startScanBtn = document.getElementById('start-scan');
+    const qrReader = document.getElementById('qr-reader');
+    const resultDiv = document.getElementById('result');
+    let html5QrCode;
+
+    startScanBtn.addEventListener('click', () => {
+      resultDiv.textContent = '';
+      qrReader.style.display = 'block';
+
+      if (html5QrCode) {
+        html5QrCode.start(
+          { facingMode: "environment" },
+          { fps: 10, qrbox: 250 },
+          qrCodeMessage => {
+            // Stop scanning after one successful scan
+            html5QrCode.stop().then(() => {
+              qrReader.style.display = 'none';
+            });
+
+            // Send scanned QR code data to backend to verify
+            fetch('/verify-ticket', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ data: qrCodeMessage })
+            })
+            .then(response => response.json())
+            .then(data => {
+              if (data.valid) {
+                resultDiv.style.color = 'green';
+                resultDiv.textContent = `✅ Valid Ticket for event: ${data.event}. Status: ${data.status}`;
+              } else {
+                resultDiv.style.color = 'red';
+                resultDiv.textContent = `❌ Invalid Ticket: ${data.message}`;
+              }
+            })
+            .catch(err => {
+              resultDiv.style.color = 'red';
+              resultDiv.textContent = 'Error verifying ticket.';
+            });
+          },
+          errorMessage => {
+            // console.log('QR scan error:', errorMessage);
+          }
+        ).catch(err => {
+          resultDiv.style.color = 'red';
+          resultDiv.textContent = 'Unable to start camera scanning: ' + err;
+        });
+      } else {
+        html5QrCode = new Html5Qrcode("qr-reader");
+        startScanBtn.click();  // Restart after creating instance
+      }
+    });
+  </script>
+</body>
+</html>

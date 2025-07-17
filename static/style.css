@@ -1,0 +1,100 @@
+/* Reset & Body */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: #f0f2f5;
+  padding: 20px;
+  color: #333;
+}
+
+/* Main Container */
+.container {
+  max-width: 700px;
+  margin: 30px auto;
+  background: #fff;
+  padding: 30px;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+}
+
+/* Headings */
+h1, h2, h3 {
+  margin-bottom: 20px;
+  color: #2c3e50;
+  text-align: center;
+}
+
+/* Inputs and Select */
+input[type="text"],
+select {
+  width: 100%;
+  padding: 12px;
+  margin: 12px 0 20px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 16px;
+}
+
+/* Buttons */
+button {
+  display: inline-block;
+  padding: 12px 24px;
+  background-color: #007bff;
+  color: white;
+  font-weight: bold;
+  font-size: 16px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  margin-top: 10px;
+}
+
+button:hover {
+  background-color: #0056b3;
+}
+
+/* QR Code Image */
+.qr-image {
+  display: block;
+  max-width: 100%;
+  margin: 20px auto;
+  border: 3px solid #007bff;
+  border-radius: 12px;
+  padding: 10px;
+  background: #fff;
+}
+
+/* Result Message */
+.result {
+  margin-top: 20px;
+  padding: 15px;
+  border-radius: 8px;
+  font-weight: bold;
+  font-size: 16px;
+  text-align: center;
+}
+
+.result.success {
+  background-color: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.result.fail {
+  background-color: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+/* Scan Box */
+#qr-reader {
+  width: 100%;
+  max-width: 100%;
+  margin-top: 30px;
+}

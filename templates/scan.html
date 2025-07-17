@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Scan Ticket - Victory Power</title>
+  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+  <style>
+    body { font-family: Arial, sans-serif; text-align: center; padding: 20px; }
+    #reader { width: 300px; margin: auto; }
+    #result { margin-top: 20px; font-weight: bold; }
+    button { margin-top: 15px; padding: 10px 20px; font-size: 16px; }
+  </style>
+</head>
+<body>
+
+  <h2>Scan Your Ticket QR Code</h2>
+
+  <div id="reader"></div>
+  <div id="result">Scan a QR code to verify ticket</div>
+
+  <button id="start-scan">Start Scanner</button>
+  <button id="stop-scan" disabled>Stop Scanner</button>
+
+  <script>
+    const resultDiv = document.getElementById('result');
+    const startBtn = document.getElementById('start-scan');
+    const stopBtn = document.getElementById('stop-scan');
+
+    let html5QrcodeScanner;
+
+    startBtn.addEventListener('click', () => {
+      html5QrcodeScanner = new Html5Qrcode("reader");
+
+      html5QrcodeScanner.start(
+        { facingMode: "environment" },
+        {
+          fps: 10,
+          qrbox: 250
+        },
+        qrCodeMessage => {
+          // On successful scan, stop scanner and verify ticket
+          html5QrcodeScanner.stop().then(() => {
+            stopBtn.disabled = true;
+            startBtn.disabled = false;
+
+            verifyTicket(qrCodeMessage);
+          }).catch(err => {
+            console.error('Failed to stop scanner:', err);
+          });
+        },
+        errorMessage => {
+          // scan failure, can log if needed
+        }
+      ).then(() => {
+        startBtn.disabled = true;
+        stopBtn.disabled = false;
+        resultDiv.textContent = "Scanning...";
+      }).catch(err => {
+        resultDiv.textContent = `Error starting scanner: ${err}`;
+      });
+    });
+
+    stopBtn.addEventListener('click', () => {
+      if (html5QrcodeScanner) {
+        html5QrcodeScanner.stop().then(() => {
+          resultDiv.textContent = "Scanner stopped.";
+          stopBtn.disabled = true;
+          startBtn.disabled = false;
+        });
+      }
+    });
+
+    function verifyTicket(ticketId) {
+      resultDiv.textContent = "Verifying ticket...";
+
+      fetch('/verify-ticket', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ticket_id: ticketId })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if(data.valid) {
+          resultDiv.innerHTML = `<span style="color:green;">✅ Valid Ticket for <b>${data.name}</b>, Event: <b>${data.event}</b>, Status: <b>${data.status}</b></span>`;
+        } else {
+          resultDiv.innerHTML = `<span style="color:red;">❌ Invalid Ticket or Not Found.</span>`;
+        }
+      })
+      .catch(err => {
+        resultDiv.textContent = `Error verifying ticket: ${err}`;
+      });
+    }
+  </script>
+
+</body>
+</html>
